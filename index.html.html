@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I&E Technician KSA – Practice v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0e14; --panel:#111620; --card:#161d2a; --border:#1e2d45;
+    --accent:#e8341a; --accent2:#f5a623; --green:#2ecc71; --red:#e74c3c;
+    --blue:#3498db; --text:#d0dce8; --dim:#5a6a80;
+    --mono:'Share Tech Mono',monospace; --display:'Bebas Neue',sans-serif; --body:'Barlow',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(30,45,69,.18) 1px,transparent 1px),linear-gradient(90deg,rgba(30,45,69,.18) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+
+  header{position:relative;z-index:1;width:100%;max-width:900px;padding:24px 20px 0;}
+  .logo-line{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+  .logo-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
+  .logo-text{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:3px;}
+  h1{font-family:var(--display);font-size:clamp(34px,7vw,58px);letter-spacing:3px;color:#fff;line-height:1;}
+  h1 span{color:var(--accent);}
+  .subtitle{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:2px;margin-top:5px;}
+
+  .stats{position:relative;z-index:1;width:100%;max-width:900px;display:flex;gap:12px;padding:16px 20px 0;flex-wrap:wrap;}
+  .stat-box{background:var(--panel);border:1px solid var(--border);border-top:2px solid var(--accent);padding:9px 16px;flex:1;min-width:80px;}
+  .stat-label{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+  .stat-val{font-family:var(--display);font-size:26px;color:#fff;line-height:1;}
+  .stat-val.green{color:var(--green);} .stat-val.red{color:var(--red);} .stat-val.amber{color:var(--accent2);}
+
+  .progress-wrap{position:relative;z-index:1;width:100%;max-width:900px;padding:14px 20px 0;}
+  .progress-bar-bg{height:3px;background:var(--border);width:100%;}
+  .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s ease;box-shadow:0 0 8px var(--accent);}
+
+  .controls{position:relative;z-index:1;width:100%;max-width:900px;padding:12px 20px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .filter-label{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:2px;}
+  select{background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:6px 10px;cursor:pointer;outline:none;}
+  select:focus{border-color:var(--accent);}
+  .btn{background:transparent;border:1px solid var(--border);color:var(--dim);font-family:var(--mono);font-size:9px;letter-spacing:2px;padding:6px 12px;cursor:pointer;text-transform:uppercase;transition:all .2s;}
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+  .btn.primary{border-color:var(--accent);color:var(--accent);}
+  .btn.primary:hover{background:var(--accent);color:#fff;}
+
+  .card-area{position:relative;z-index:1;width:100%;max-width:900px;padding:16px 20px;flex:1;}
+
+  .mode-tabs{display:flex;margin-bottom:16px;border:1px solid var(--border);width:fit-content;}
+  .mode-tab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:9px;letter-spacing:2px;padding:7px 16px;cursor:pointer;text-transform:uppercase;transition:all .2s;border-right:1px solid var(--border);}
+  .mode-tab:last-child{border-right:none;}
+  .mode-tab.active{background:var(--accent);color:#fff;}
+
+  /* FLASHCARD */
+  .flashcard-wrap{perspective:1200px;width:100%;min-height:300px;cursor:pointer;margin-bottom:16px;}
+  .flashcard{position:relative;width:100%;min-height:300px;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);}
+  .flashcard.flipped{transform:rotateY(180deg);}
+  .card-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--card);border:1px solid var(--border);padding:28px 32px;display:flex;flex-direction:column;justify-content:center;min-height:300px;}
+  .card-face.back{transform:rotateY(180deg);border-top:3px solid var(--green);}
+  .card-face.front{border-top:3px solid var(--accent);}
+  .card-tag{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .card-tag::after{content:'';flex:1;height:1px;background:var(--border);}
+  .card-q{font-size:17px;font-weight:600;line-height:1.5;color:#fff;margin-bottom:10px;}
+  .card-hint{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:auto;padding-top:14px;border-top:1px solid var(--border);}
+  .card-a{font-size:20px;font-weight:700;color:var(--green);margin-bottom:8px;line-height:1.3;}
+  .card-explain{font-size:13px;color:var(--text);line-height:1.6;margin-top:8px;}
+
+  /* SVG symbol display */
+  .symbol-display{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-top:12px;}
+  .symbol-box{background:#0a0e14;border:1px solid var(--border);padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .symbol-box svg{display:block;}
+  .symbol-label{font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:1px;text-align:center;}
+
+  /* MC */
+  .mc-card{background:var(--card);border:1px solid var(--border);border-top:3px solid var(--accent);padding:28px 32px;margin-bottom:16px;}
+  .mc-q{font-size:17px;font-weight:600;color:#fff;margin-bottom:20px;line-height:1.5;}
+  .mc-options{display:flex;flex-direction:column;gap:8px;}
+  .mc-opt{background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--body);font-size:14px;padding:10px 16px;cursor:pointer;text-align:left;transition:all .15s;display:flex;align-items:center;gap:10px;}
+  .mc-opt:hover:not(:disabled){border-color:var(--accent2);color:#fff;}
+  .mc-opt.correct{border-color:var(--green);background:rgba(46,204,113,.1);color:var(--green);}
+  .mc-opt.wrong{border-color:var(--red);background:rgba(231,76,60,.1);color:var(--red);}
+  .mc-opt:disabled{cursor:default;}
+  .opt-letter{font-family:var(--display);font-size:17px;color:var(--dim);min-width:20px;}
+  .mc-feedback{margin-top:14px;padding:12px 16px;border-left:3px solid var(--green);background:rgba(46,204,113,.05);font-size:13px;line-height:1.6;display:none;}
+  .mc-feedback.show{display:block;}
+  .mc-feedback.wrong-fb{border-color:var(--red);background:rgba(231,76,60,.05);}
+  .mc-sym{margin-top:10px;}
+
+  .self-rate{display:none;gap:10px;margin-bottom:14px;}
+  .self-rate.show{display:flex;}
+  .rate-btn{flex:1;padding:9px;border:1px solid var(--border);background:transparent;font-family:var(--mono);font-size:9px;letter-spacing:2px;cursor:pointer;text-transform:uppercase;transition:all .2s;}
+  .rate-btn.got-it{color:var(--green);border-color:var(--green);}
+  .rate-btn.got-it:hover{background:rgba(46,204,113,.15);}
+  .rate-btn.missed{color:var(--red);border-color:var(--red);}
+  .rate-btn.missed:hover{background:rgba(231,76,60,.15);}
+
+  .nav-row{display:flex;gap:10px;justify-content:space-between;align-items:center;}
+  .batch-info{font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;padding:6px 0;letter-spacing:1px;}
+
+  /* Keyboard hint */
+  .kb-hint{font-family:var(--mono);font-size:8px;color:var(--dim);text-align:center;padding:8px 0 16px;letter-spacing:1px;}
+  kbd{background:var(--panel);border:1px solid var(--border);padding:1px 5px;border-radius:2px;font-size:9px;}
+
+  @media(max-width:600px){
+    .card-face{padding:18px 16px;}
+    .mc-card{padding:18px 16px;}
+    .stat-val{font-size:20px;}
+    h1{font-size:36px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-line">
+    <div class="logo-dot"></div>
+    <span class="logo-text">DANOS KSA · AUTOMATION & INSTRUMENTATION</span>
+  </div>
+  <h1>I<span>&</span>E TECH PRACTICE</h1>
+  <div class="subtitle">// KSA COMPETENCY PREP · 25 QUESTIONS PER SESSION · SVG VALVE SYMBOLS</div>
+</header>
+
+<div class="stats">
+  <div class="stat-box"><div class="stat-label">Session</div><div class="stat-val amber" id="stat-seen">0</div></div>
+  <div class="stat-box"><div class="stat-label">Correct</div><div class="stat-val green" id="stat-correct">0</div></div>
+  <div class="stat-box"><div class="stat-label">Missed</div><div class="stat-val red" id="stat-missed">0</div></div>
+  <div class="stat-box"><div class="stat-label">Score</div><div class="stat-val" id="stat-score">—</div></div>
+  <div class="stat-box"><div class="stat-label">Q</div><div class="stat-val" id="stat-qnum">1/25</div></div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<div class="controls">
+  <span class="filter-label">CATEGORY //</span>
+  <select id="cat-filter">
+    <option value="all">All Categories</option>
+    <option value="P&ID Symbols">P&ID Symbols</option>
+    <option value="Valve Symbols">Valve Symbols</option>
+    <option value="Instrumentation">Instrumentation</option>
+    <option value="API Standards">API Standards</option>
+    <option value="Control Loops">Control Loops</option>
+    <option value="Safety Systems">Safety Systems</option>
+    <option value="NEC/Electrical">NEC / Electrical</option>
+    <option value="Calibration">Calibration</option>
+    <option value="Transmitters">Transmitters</option>
+    <option value="Manifolds">Manifolds</option>
+  </select>
+  <button class="btn primary" id="new-session-btn">▶ NEW SESSION</button>
+  <button class="btn" id="reset-btn">↺ RESET SCORE</button>
+</div>
+
+<div class="card-area">
+  <div class="mode-tabs">
+    <button class="mode-tab active" data-mode="flash">FLASHCARD</button>
+    <button class="mode-tab" data-mode="mc">MULTIPLE CHOICE</button>
+  </div>
+
+  <div id="flash-mode">
+    <div class="flashcard-wrap" id="flashcard-wrap" onclick="flipCard()">
+      <div class="flashcard" id="flashcard">
+        <div class="card-face front">
+          <div class="card-tag" id="fc-tag">Category</div>
+          <div id="fc-sym-front"></div>
+          <div class="card-q" id="fc-q">Loading...</div>
+          <div class="card-hint">// tap card to reveal answer · SPACE to flip</div>
+        </div>
+        <div class="card-face back">
+          <div class="card-tag">Answer</div>
+          <div class="card-a" id="fc-a"></div>
+          <div id="fc-sym-back"></div>
+          <div class="card-explain" id="fc-explain"></div>
+        </div>
+      </div>
+    </div>
+    <div class="self-rate" id="self-rate">
+      <button class="rate-btn got-it" onclick="rateCard(true)">✓ GOT IT <kbd>G</kbd></button>
+      <button class="rate-btn missed" onclick="rateCard(false)">✗ MISSED <kbd>M</kbd></button>
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevCard()">← PREV</button>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--dim)" id="fc-counter">1 / 25</span>
+      <button class="btn primary" onclick="nextCard()">NEXT →</button>
+    </div>
+  </div>
+
+  <div id="mc-mode" style="display:none">
+    <div class="mc-card">
+      <div class="card-tag" id="mc-tag">Category</div>
+      <div id="mc-sym-q"></div>
+      <div class="mc-q" id="mc-q">Loading...</div>
+      <div class="mc-options" id="mc-opts"></div>
+      <div class="mc-feedback" id="mc-feedback"></div>
+      <div id="mc-sym-answer"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn" onclick="prevCard()">← PREV</button>
+      <span style="font-family:var(--mono);font-size:10px;color:var(--dim)" id="mc-counter">1 / 25</span>
+      <button class="btn primary" onclick="nextCard()">NEXT →</button>
+    </div>
+  </div>
+
+  <div class="kb-hint">KEYBOARD: <kbd>SPACE</kbd> flip · <kbd>G</kbd> got it · <kbd>M</kbd> missed · <kbd>→</kbd> next · <kbd>←</kbd> prev · <kbd>N</kbd> new session</div>
+</div>
+
+<script>
+// ================================================================
+// SVG SYMBOL LIBRARY — ISA/P&ID accurate inline SVGs
+// ================================================================
+const SYM = {
+  needle_valve: `<svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="60" cy="40" r="30" stroke="#e8341a" stroke-width="2"/>
+    <line x1="10" y1="40" x2="30" y2="40" stroke="#d0dce8" stroke-width="2"/>
+    <line x1="90" y1="40" x2="110" y2="40" stroke="#d0dce8" stroke-width="2"/>
+    <polygon points="30,20 60,40 30,60" fill="none" stroke="#d0dce8" stroke-width="1.5"/>
+    <polygon points="90,20 60,40 90,60" fill="none" stroke="#d0dce8" stroke-width="1.5"/>
+    <text x="60" y="74" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">NEEDLE VALVE</text>
+  </svg>`,
+
+  butterfly_valve_manual: `<svg width="140" height="100" viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="70" cy="60" r="30" stroke="#e8341a" stroke-width="2"/>
+    <line x1="10" y1="60" x2="40" y2="60" stroke="#d0dce8" stroke-width="2"/>
+    <line x1="100" y1="60" x2="130" y2="60" stroke="#d0dce8" stroke-width="2"/>
+    <polygon points="40,40 70,60 40,80" fill="none" stroke="#d0dce8" stroke-width="1.5"/>
+    <polygon points="100,40 70,60 100,80" fill="none" stroke="#d0dce8" stroke-width="1.5"/>
+    <line x1="70" y1="30" x2="70" y2="10" stroke="#d0dce8" stroke-width="2"/>
+    <line x1="55" y1="10" x2="85" y2="10" stroke="#d0dce8" stroke-width="2.5"/>
+    <text x="70" y="96" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">BUTTERFLY (MANUAL)</text>
+  </svg>`,
+
+  butterfly_valve_solenoid: `<svg width="140" height="110" viewBox="0 0 140 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="70" cy="65" r="30" stroke="#e8341a" stroke-width="2"/>
+    <line x1="10" y1="65" x2="40" y2="65" stroke="#d0dce8" stroke-width="2"/>
+    <line x1="100" y1="65" x2="130" y2="65" stroke="#d0dce8" stroke-width="2"/>
+    <polygon points="40,45 70,65 40,85" fill="none" stroke="#d0dce8" stroke-width="1.5"/>
+    <polygon points="100,45 70,65 100,85" fill="none" stroke="#d0dce8" stroke-width="1.5"/>
+    <line x1="70" y1="35" x2="70" y2="18" stroke="#d0dce8" stroke-width="2"/>
+    <rect x="57" y="6" width="26" height="14" stroke="#f5a623" stroke-width="1.5" fill="none"/>
+    <text x="70" y="17" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#f5a623">S</text>
+    <text x="70" y="106" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">BUTTERFLY (SOLENOID)</text>
+  </svg>`,
+
+  butterfly_valve_motor: `<svg width="140" height="110" viewBox="0 0 140 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="70" cy="65" r="30" stroke="#e8341a" stroke-width="2"/>
+    <line x1="10" y1="65" x2="40" y2="65" stroke="#d0dce8" stroke-width="2"/>
+    <line x1="100" y1="65" x2="130" y2="65" stroke="#d0dce8" stroke-width="2"/>
+    <polygon points="40,45 70,65 40,85" fill="none" stroke="#d0dce8" stroke-width="1.5"/>
+    <polygon points="100,45 70,65 100,85" fill="none" stroke="#d0dce8" stroke-width="1.5"/>
+    <line x1="70" y1="35" x2="70" y2="18" stroke="#d0dce8" stroke-width="2"/>
+    <rect x="57" y="6" width="26" height="14" stroke="#3498db" stroke-width="1.5" fill="none"/>
+    <text x="70" y="17" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#3498db">M</text>
+    <text x="70" y="106" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">BUTTERFLY (MOTOR)</text>
+  </svg>`,
+
+  globe_valve: `<svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="10" y1="40" x2="110" y2="40" stroke="#d0dce8" stroke-width="2"/>
+    <circle cx="60" cy="40" r="14" stroke="#e8341a" stroke-width="2" fill="none"/>
+    <line x1="60" y1="26" x2="60" y2="10" stroke="#d0dce8" stroke-width="2"/>
+    <line x1="48" y1="10" x2="72" y2="10" stroke="#d0dce8" stroke-width="2.5"/>
+    <text x="60" y="74" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">GLOBE VALVE</text>
+  </svg>`,
+
+  gate_valve: `<svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="10" y1="40" x2="110" y2="40" stroke="#d0dce8" stroke-width="2"/>
+    <polygon points="46,22 74,22 74,58 46,58" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <line x1="60" y1="22" x2="60" y2="8" stroke="#d0dce8" stroke-width="2"/>
+    <line x1="48" y1="8" x2="72" y2="8" stroke="#d0dce8" stroke-width="2.5"/>
+    <text x="60" y="74" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">GATE VALVE</text>
+  </svg>`,
+
+  ball_valve: `<svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="10" y1="40" x2="110" y2="40" stroke="#d0dce8" stroke-width="2"/>
+    <circle cx="60" cy="40" r="18" stroke="#e8341a" stroke-width="2" fill="none"/>
+    <line x1="52" y1="40" x2="68" y2="40" stroke="#e8341a" stroke-width="3"/>
+    <line x1="60" y1="22" x2="60" y2="10" stroke="#d0dce8" stroke-width="2"/>
+    <line x1="50" y1="10" x2="70" y2="10" stroke="#d0dce8" stroke-width="2.5"/>
+    <text x="60" y="74" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">BALL VALVE</text>
+  </svg>`,
+
+  check_valve: `<svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="10" y1="40" x2="110" y2="40" stroke="#d0dce8" stroke-width="2"/>
+    <polygon points="44,20 44,60 76,40" fill="none" stroke="#e8341a" stroke-width="2"/>
+    <line x1="76" y1="20" x2="76" y2="60" stroke="#e8341a" stroke-width="2.5"/>
+    <text x="60" y="74" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">CHECK VALVE</text>
+  </svg>`,
+
+  control_valve_fc: `<svg width="150" height="110" viewBox="0 0 150 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="10" y1="65" x2="150" y2="65" stroke="#d0dce8" stroke-width="2"/>
+    <polygon points="40,44 75,65 40,86" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <polygon points="110,44 75,65 110,86" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <line x1="75" y1="44" x2="75" y2="28" stroke="#d0dce8" stroke-width="2"/>
+    <ellipse cx="75" cy="18" rx="24" ry="12" stroke="#2ecc71" stroke-width="1.5" fill="none"/>
+    <text x="75" y="22" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#2ecc71">FC</text>
+    <text x="75" y="104" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">CONTROL VALVE FC</text>
+  </svg>`,
+
+  control_valve_fo: `<svg width="150" height="110" viewBox="0 0 150 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="10" y1="65" x2="150" y2="65" stroke="#d0dce8" stroke-width="2"/>
+    <polygon points="40,44 75,65 40,86" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <polygon points="110,44 75,65 110,86" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <line x1="75" y1="44" x2="75" y2="28" stroke="#d0dce8" stroke-width="2"/>
+    <ellipse cx="75" cy="18" rx="24" ry="12" stroke="#e8341a" stroke-width="1.5" fill="none"/>
+    <text x="75" y="22" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#e8341a">FO</text>
+    <text x="75" y="104" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">CONTROL VALVE FO</text>
+  </svg>`,
+
+  psv: `<svg width="130" height="100" viewBox="0 0 130 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="10" y1="60" x2="120" y2="60" stroke="#d0dce8" stroke-width="2"/>
+    <polygon points="40,42 65,60 40,78" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <polygon points="90,42 65,60 90,78" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <line x1="65" y1="42" x2="65" y2="28" stroke="#d0dce8" stroke-width="2"/>
+    <line x1="65" y1="12" x2="65" y2="28" stroke="#d0dce8" stroke-width="2"/>
+    <path d="M50,12 Q65,4 80,12" stroke="#f5a623" stroke-width="2" fill="none"/>
+    <text x="65" y="94" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">PRESSURE SAFETY VALVE</text>
+  </svg>`,
+
+  relief_valve: `<svg width="130" height="100" viewBox="0 0 130 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="10" y1="60" x2="120" y2="60" stroke="#d0dce8" stroke-width="2"/>
+    <polygon points="40,42 65,60 40,78" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <polygon points="90,42 65,60 90,78" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <line x1="65" y1="42" x2="65" y2="22" stroke="#d0dce8" stroke-width="2"/>
+    <line x1="55" y1="22" x2="90" y2="22" stroke="#d0dce8" stroke-width="2"/>
+    <text x="65" y="94" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">RELIEF VALVE</text>
+  </svg>`,
+
+  three_valve_manifold: `<svg width="200" height="120" viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="10" y1="40" x2="190" y2="40" stroke="#d0dce8" stroke-width="1.5"/>
+    <line x1="10" y1="80" x2="190" y2="80" stroke="#d0dce8" stroke-width="1.5"/>
+    <polygon points="40,30 55,40 40,50" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <polygon points="70,30 55,40 70,50" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <polygon points="40,70 55,80 40,90" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <polygon points="70,70 55,80 70,90" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <line x1="100" y1="40" x2="100" y2="80" stroke="#d0dce8" stroke-width="1.5"/>
+    <polygon points="90,55 100,65 110,55" fill="none" stroke="#2ecc71" stroke-width="1.5"/>
+    <polygon points="90,65 100,55 110,65" fill="none" stroke="#2ecc71" stroke-width="1.5"/>
+    <text x="40" y="8" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#5a6a80">HP</text>
+    <text x="55" y="8" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#3498db">BLOCK</text>
+    <text x="55" y="112" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#3498db">BLOCK</text>
+    <text x="100" y="112" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#2ecc71">EQ</text>
+    <text x="40" y="112" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#5a6a80">LP</text>
+    <text x="150" y="8" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#5a6a80">→DP XMTR</text>
+  </svg>`,
+
+  instrument_bubble_local: `<svg width="160" height="80" viewBox="0 0 160 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="60" cy="38" r="26" stroke="#e8341a" stroke-width="2" fill="none"/>
+    <line x1="34" y1="38" x2="86" y2="38" stroke="#e8341a" stroke-width="1.5"/>
+    <text x="60" y="33" text-anchor="middle" font-family="Share Tech Mono" font-size="10" fill="#d0dce8">PT</text>
+    <text x="60" y="48" text-anchor="middle" font-family="Share Tech Mono" font-size="10" fill="#d0dce8">101</text>
+    <text x="60" y="74" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#5a6a80">LOCAL INSTRUMENT</text>
+  </svg>`,
+
+  instrument_bubble_panel: `<svg width="160" height="80" viewBox="0 0 160 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="60" cy="38" r="26" stroke="#3498db" stroke-width="2" fill="none"/>
+    <line x1="34" y1="38" x2="86" y2="38" stroke="#3498db" stroke-width="2.5"/>
+    <text x="60" y="33" text-anchor="middle" font-family="Share Tech Mono" font-size="10" fill="#d0dce8">PIC</text>
+    <text x="60" y="48" text-anchor="middle" font-family="Share Tech Mono" font-size="10" fill="#d0dce8">101</text>
+    <text x="60" y="74" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#5a6a80">PANEL INSTRUMENT</text>
+  </svg>`,
+
+  instrument_bubble_dcs: `<svg width="160" height="80" viewBox="0 0 160 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="60" cy="38" r="26" stroke="#9b59b6" stroke-width="2" fill="none" stroke-dasharray="4,3"/>
+    <text x="60" y="33" text-anchor="middle" font-family="Share Tech Mono" font-size="10" fill="#d0dce8">FIC</text>
+    <text x="60" y="48" text-anchor="middle" font-family="Share Tech Mono" font-size="10" fill="#d0dce8">201</text>
+    <text x="60" y="74" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#5a6a80">DCS / COMPUTER</text>
+  </svg>`,
+
+  orifice_plate: `<svg width="150" height="80" viewBox="0 0 150 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="10" y1="40" x2="140" y2="40" stroke="#d0dce8" stroke-width="2"/>
+    <line x1="10" y1="25" x2="140" y2="25" stroke="#d0dce8" stroke-width="1"/>
+    <line x1="10" y1="55" x2="140" y2="55" stroke="#d0dce8" stroke-width="1"/>
+    <line x1="72" y1="22" x2="72" y2="58" stroke="#e8341a" stroke-width="3"/>
+    <line x1="78" y1="22" x2="78" y2="58" stroke="#e8341a" stroke-width="3"/>
+    <line x1="72" y1="30" x2="60" y2="15" stroke="#3498db" stroke-width="1.5" stroke-dasharray="3,2"/>
+    <line x1="78" y1="50" x2="90" y2="65" stroke="#3498db" stroke-width="1.5" stroke-dasharray="3,2"/>
+    <text x="75" y="76" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">ORIFICE PLATE (FE)</text>
+  </svg>`,
+
+  thermocouple: `<svg width="120" height="90" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="60" y1="10" x2="60" y2="70" stroke="#f5a623" stroke-width="2"/>
+    <line x1="40" y1="10" x2="40" y2="55" stroke="#3498db" stroke-width="2"/>
+    <line x1="40" y1="55" x2="60" y2="70" stroke="#d0dce8" stroke-width="1.5"/>
+    <circle cx="60" cy="70" r="4" fill="#e8341a"/>
+    <rect x="25" y="6" width="50" height="14" stroke="#d0dce8" stroke-width="1" fill="none"/>
+    <text x="50" y="17" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#d0dce8">TE HEAD</text>
+    <text x="60" y="86" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">THERMOCOUPLE</text>
+  </svg>`,
+
+  dp_transmitter: `<svg width="160" height="100" viewBox="0 0 160 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="25" width="120" height="50" rx="4" stroke="#e8341a" stroke-width="2" fill="none"/>
+    <text x="80" y="47" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#d0dce8">DP</text>
+    <text x="80" y="60" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#d0dce8">TRANSMITTER</text>
+    <line x1="44" y1="75" x2="44" y2="95" stroke="#d0dce8" stroke-width="1.5"/>
+    <line x1="116" y1="75" x2="116" y2="95" stroke="#d0dce8" stroke-width="1.5"/>
+    <text x="44" y="100" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#3498db">HP</text>
+    <text x="116" y="100" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#3498db">LP</text>
+    <line x1="80" y1="25" x2="80" y2="10" stroke="#2ecc71" stroke-width="1.5" stroke-dasharray="3,2"/>
+    <text x="100" y="8" font-family="Share Tech Mono" font-size="7" fill="#2ecc71">4-20mA</text>
+  </svg>`,
+
+  solenoid_valve: `<svg width="130" height="100" viewBox="0 0 130 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="10" y1="60" x2="120" y2="60" stroke="#d0dce8" stroke-width="2"/>
+    <polygon points="35,42 65,60 35,78" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <polygon points="95,42 65,60 95,78" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <line x1="65" y1="42" x2="65" y2="26" stroke="#d0dce8" stroke-width="2"/>
+    <rect x="50" y="12" width="30" height="16" stroke="#f5a623" stroke-width="1.5" fill="none"/>
+    <text x="65" y="24" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#f5a623">S</text>
+    <line x1="50" y1="18" x2="38" y2="18" stroke="#f5a623" stroke-width="1" stroke-dasharray="2,2"/>
+    <line x1="80" y1="18" x2="92" y2="18" stroke="#f5a623" stroke-width="1" stroke-dasharray="2,2"/>
+    <text x="65" y="94" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="#5a6a80">SOLENOID VALVE</text>
+  </svg>`,
+
+  pid_loop: `<svg width="200" height="100" viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="40" cy="50" r="22" stroke="#3498db" stroke-width="1.5" fill="none"/>
+    <line cx="40" cy="50" x1="18" y1="50" x2="62" y2="50" stroke="#3498db" stroke-width="1"/>
+    <text x="40" y="46" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#d0dce8">FIC</text>
+    <text x="40" y="57" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#d0dce8">201</text>
+    <line x1="62" y1="50" x2="90" y2="50" stroke="#d0dce8" stroke-width="1.5" marker-end="url(#arr)"/>
+    <polygon points="90,40 115,50 90,60" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <polygon points="140,40 115,50 140,60" fill="none" stroke="#e8341a" stroke-width="1.5"/>
+    <line x1="140" y1="50" x2="170" y2="50" stroke="#d0dce8" stroke-width="1.5"/>
+    <circle cx="185" cy="50" r="14" stroke="#2ecc71" stroke-width="1.5" fill="none"/>
+    <text x="185" y="46" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#d0dce8">FT</text>
+    <text x="185" y="56" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="#d0dce8">201</text>
+    <text x="100" y="92" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="#5a6a80">CONTROL LOOP</text>
+  </svg>`,
+};
+
+function symBox(key, label) {
+  if (!SYM[key]) return '';
+  return `<div class="symbol-display"><div class="symbol-box">${SYM[key]}<div class="symbol-label">${label||''}</div></div></div>`;
+}
+
+// ================================================================
+// QUESTION BANK
+// ================================================================
+const ALL_QUESTIONS = [
+// ---- VALVE SYMBOLS (with SVG) ----
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'needle_valve',a:"Needle Valve",symA:'needle_valve',exp:"Two triangles pointing toward each other (bow-tie) inside a circle with NO actuator on top = needle valve. Used for precise flow control."},
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'butterfly_valve_manual',a:"Manually Operated Butterfly Valve",symA:'butterfly_valve_manual',exp:"Bow-tie body with a T-bar handwheel on top = manually operated butterfly valve. Quarter-turn, disc in flow stream."},
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'butterfly_valve_solenoid',a:"Solenoid Operated Butterfly Valve",symA:'butterfly_valve_solenoid',exp:"Bow-tie body with a square labeled 'S' on top = solenoid actuated butterfly valve. Electrically operated."},
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'butterfly_valve_motor',a:"Motor Operated Butterfly Valve (MOV)",symA:'butterfly_valve_motor',exp:"Bow-tie body with a square labeled 'M' on top = motor operated valve. Electric motor drives a gear to turn the disc."},
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'globe_valve',a:"Globe Valve",symA:'globe_valve',exp:"Circle with a handwheel on top, body shows plug-and-seat configuration. Used for throttling."},
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'gate_valve',a:"Gate Valve",symA:'gate_valve',exp:"Rectangle body with handwheel. The gate slides perpendicular to flow. For isolation only — not throttling."},
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'ball_valve',a:"Ball Valve",symA:'ball_valve',exp:"Circle with a bore line through it and handwheel on top. Quarter-turn, spherical plug."},
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'check_valve',a:"Check Valve",symA:'check_valve',exp:"Triangle pointing in direction of flow with a vertical seat line. Allows flow one direction only."},
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'control_valve_fc',a:"Fail-Closed Control Valve",symA:'control_valve_fc',exp:"Bow-tie body with diaphragm actuator on top labeled 'FC'. Closes on loss of instrument air."},
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'control_valve_fo',a:"Fail-Open Control Valve",symA:'control_valve_fo',exp:"Bow-tie body with diaphragm actuator labeled 'FO'. Opens on loss of instrument air."},
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'psv',a:"Pressure Safety Valve (PSV)",symA:'psv',exp:"Bow-tie body with a spring/hat symbol on top. Opens automatically on overpressure, reseats when pressure drops."},
+{cat:"Valve Symbols",q:"Identify this P&ID symbol.",symQ:'solenoid_valve',a:"Solenoid Valve",symA:'solenoid_valve',exp:"Bow-tie body with a square labeled 'S' and dashed electrical lines = solenoid valve. On/off via electromagnetic coil."},
+{cat:"Valve Symbols",q:"What is the KEY visual difference between a needle valve and a butterfly valve on a P&ID?",a:"Butterfly valve has an actuator symbol on top — needle valve does not",symA:'needle_valve',exp:"Both use the bow-tie body. The actuator (handwheel, motor, solenoid) on top distinguishes butterfly from needle."},
+{cat:"Valve Symbols",q:"What does 'FC' on a control valve actuator mean?",a:"Fail Closed — valve closes on loss of air or signal",symA:'control_valve_fc',exp:"FC is the most common safety valve action. Loss of instrument air or signal drives valve to closed position."},
+{cat:"Valve Symbols",q:"What does 'FO' on a control valve actuator mean?",a:"Fail Open — valve opens on loss of air or signal",symA:'control_valve_fo',exp:"FO is used when open is the safest failure position (e.g., cooling water, fuel shutoff may be FO in some designs)."},
+{cat:"Valve Symbols",q:"Identify this symbol.",symQ:'orifice_plate',a:"Orifice Plate (Primary Flow Element)",symA:'orifice_plate',exp:"Two parallel vertical lines in a pipe, usually with taps shown. Creates differential pressure proportional to flow squared."},
+{cat:"Valve Symbols",q:"What does the 3-valve manifold diagram show?",symQ:'three_valve_manifold',a:"Two block valves (HP and LP) and one equalizing valve connecting both sides",symA:'three_valve_manifold',exp:"Normal operation: both blocks open, equalizer closed. Equalize before isolating to protect the transmitter sensing element."},
+// ---- P&ID SYMBOLS ----
+{cat:"P&ID Symbols",q:"What does a circle with a horizontal line through the middle represent?",symA:'instrument_bubble_local',a:"Locally mounted field instrument",exp:"Single line through circle = field-mounted instrument. No panel access needed — operator reads it at the equipment."},
+{cat:"P&ID Symbols",q:"What does a circle with a DOUBLE horizontal line represent?",symA:'instrument_bubble_panel',a:"Panel-mounted instrument (front of panel, operator accessible)",exp:"Double line = control panel mounted. Operator can see and interact with it from the control room panel."},
+{cat:"P&ID Symbols",q:"What does a DASHED circle represent on a P&ID?",symA:'instrument_bubble_dcs',a:"DCS / computer / software function",exp:"Dashed boundary = function performed in software (DCS, PLC). Not a physical hardware device in the field."},
+{cat:"P&ID Symbols",q:"What does 'TRC' stand for on a P&ID tag?",a:"Temperature Recording Controller",exp:"T=Temperature (measured variable), R=Recording (function), C=Controller (function). Records and controls temperature."},
+{cat:"P&ID Symbols",q:"What does 'FIC' stand for?",a:"Flow Indicating Controller",exp:"F=Flow, I=Indicating (has display), C=Controller. Common tag for flow control loops."},
+{cat:"P&ID Symbols",q:"In ISA tagging, what does 'H' suffix mean on a switch (e.g. PSH)?",a:"High — the switch trips on a high process condition",exp:"PSH = Pressure Switch High. H suffix indicates the device activates when the variable rises above setpoint."},
+// ---- INSTRUMENTATION ----
+{cat:"Instrumentation",q:"What does a DP transmitter measure?",symA:'dp_transmitter',a:"Differential Pressure — the difference between two pressure inputs (HP and LP)",exp:"DP transmitters have a high-pressure and low-pressure port. Used for flow (orifice), level, or filter ΔP measurement."},
+{cat:"Instrumentation",q:"What is the range of a standard 4-20mA signal?",a:"4mA = 0% (live zero), 20mA = 100% of span",exp:"The live zero (4mA) allows fault detection — a dead loop reads 0mA, not 4mA. 16mA span = full measurement range."},
+{cat:"Instrumentation",q:"What is a thermocouple?",symA:'thermocouple',a:"Temperature sensor generating millivolt EMF from two dissimilar metals (Seebeck effect)",exp:"Two dissimilar metals joined at a hot junction generate a voltage proportional to temperature difference vs. cold junction."},
+// ---- API STANDARDS ----
+{cat:"API Standards",q:"What does API RP 14C cover?",a:"Safety systems on offshore production facilities — design, installation, and testing",exp:"14C is the primary API standard for process safety devices including PSVs, SDVs, PSH/PSL switches, and detection systems."},
+{cat:"API Standards",q:"Per API RP 14C, in what mode must safety shutdown devices operate?",a:"Manual reset mode",exp:"Safety devices must require deliberate human action to reset. Prevents automatic restart into a hazardous condition."},
+{cat:"API Standards",q:"Per API RP 14C, where is a PSH setpoint relative to operating pressure?",a:"5% or 3 psi above highest operating pressure — whichever is GREATER",exp:"This margin ensures the PSH does not trip during normal pressure fluctuations while still protecting the equipment."},
+// ---- SAFETY SYSTEMS ----
+{cat:"Safety Systems",q:"What is a PSH?",a:"Pressure Switch High — trips on high pressure, initiates shutdown",exp:"PSH is a safety switch. When process pressure exceeds setpoint, it sends a signal to the ESD/SIS to take protective action."},
+{cat:"Safety Systems",q:"What does 'de-energize to trip' mean in a safety system?",a:"The safety action (shutdown) occurs when power is LOST — fail-safe design",exp:"Energized = normal. De-energized = safe state. This ensures a power failure causes a controlled shutdown, not a dangerous condition."},
+// ---- NEC/ELECTRICAL ----
+{cat:"NEC/Electrical",q:"What NEC article covers grounding and bonding?",a:"Article 250",exp:"NEC Article 250 is the complete reference for grounding and bonding of all electrical installations."},
+{cat:"NEC/Electrical",q:"What is a Class I, Division 1 hazardous location?",a:"Location where flammable gases/vapors are present under NORMAL operating conditions",exp:"Division 1 = highest hazard. Requires explosion-proof, intrinsically safe, or purged/pressurized equipment."},
+// ---- CALIBRATION ----
+{cat:"Calibration",q:"What is the 'as-found' reading in calibration?",a:"The instrument reading BEFORE any adjustments — documents drift since last cal",exp:"As-found data is critical for tracking instrument performance over time and adjusting calibration intervals."},
+{cat:"Calibration",q:"What is a 5-point calibration check?",a:"Verifying instrument output at 0%, 25%, 50%, 75%, and 100% of range",exp:"Five points confirm linearity across the full span. More points than a basic zero/span check."},
+// ---- MANIFOLDS ----
+{cat:"Manifolds",q:"In a 3-valve manifold, what is the normal operating position?",symA:'three_valve_manifold',a:"Both block valves OPEN, equalizing valve CLOSED",exp:"Open blocks allow process pressure to reach both sides of the DP transmitter. Closed equalizer keeps HP and LP separated."},
+{cat:"Manifolds",q:"Why open the equalizer FIRST before closing block valves when isolating a DP transmitter?",a:"Prevents overpressuring the LP side of the transmitter sensing element",exp:"If you close LP with HP still open, full line pressure appears across the sensing diaphragm — potential permanent damage."},
+// ---- CONTROL LOOPS ----
+{cat:"Control Loops",q:"What are the three modes of a PID controller?",a:"Proportional (P), Integral (I), Derivative (D)",exp:"P corrects present error. I corrects past accumulated error (eliminates offset). D anticipates future error from rate of change."},
+{cat:"Control Loops",q:"What is 'integral windup'?",a:"Accumulation of integral action when output is saturated, causing overshoot when unsaturated",exp:"Anti-windup logic stops integration when the output is at 0% or 100% limit to prevent overshoot when conditions change."},
+// ---- TRANSMITTERS ----
+{cat:"Transmitters",q:"Can a smart transmitter be reset to factory defaults?",a:"YES — via HART communicator, local display, or manufacturer software",exp:"Factory defaults restore the original configuration. Most common brands (Rosemount, Yokogawa, etc.) support this function."},
+{cat:"Transmitters",q:"What does a 3.6mA output from a transmitter indicate?",a:"Transmitter fault or under-range — below the valid 4mA minimum",exp:"NAMUR NE43 defines 3.6-3.8mA as a low-alarm fault signal. It tells the DCS something is wrong with the transmitter."},
+];
+
+// ================================================================
+// APP STATE
+// ================================================================
+const SESSION_SIZE = 25;
+let fullDeck = [];
+let sessionDeck = [];
+let currentIdx = 0;
+let mode = 'flash';
+let isFlipped = false;
+let mcAnswered = false;
+let stats = { seen: new Set(), correct: 0, missed: 0 };
+
+function buildSession() {
+  const cat = document.getElementById('cat-filter').value;
+  fullDeck = ALL_QUESTIONS.filter(q => cat === 'all' || q.cat === cat);
+  shuffle(fullDeck);
+  sessionDeck = fullDeck.slice(0, Math.min(SESSION_SIZE, fullDeck.length));
+  currentIdx = 0;
+  isFlipped = false;
+  mcAnswered = false;
+  renderCurrent();
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+function renderCurrent() {
+  if (!sessionDeck.length) return;
+  const q = sessionDeck[currentIdx];
+  const total = sessionDeck.length;
+  const catColors = {
+    'Valve Symbols':'#e8341a','P&ID Symbols':'#f5a623','Instrumentation':'#3498db',
+    'API Standards':'#e67e22','Control Loops':'#9b59b6','Safety Systems':'#e74c3c',
+    'NEC/Electrical':'#f1c40f','Calibration':'#2ecc71','Transmitters':'#3498db','Manifolds':'#1abc9c'
+  };
+  const col = catColors[q.cat] || '#e8341a';
+
+  document.getElementById('stat-qnum').textContent = `${currentIdx+1}/${total}`;
+  document.getElementById('fc-counter').textContent = `${currentIdx+1} / ${total}`;
+  document.getElementById('mc-counter').textContent = `${currentIdx+1} / ${total}`;
+  document.getElementById('progress-fill').style.width = ((currentIdx+1)/total*100)+'%';
+
+  if (mode === 'flash') {
+    const card = document.getElementById('flashcard');
+    card.classList.remove('flipped');
+    isFlipped = false;
+    document.getElementById('self-rate').classList.remove('show');
+
+    document.getElementById('fc-tag').textContent = q.cat;
+    document.getElementById('fc-tag').style.color = col;
+    document.getElementById('fc-q').textContent = q.q;
+    document.getElementById('fc-a').textContent = q.a;
+    document.getElementById('fc-explain').textContent = q.exp;
+
+    // Symbol on question side — show UNLABELED symbol for "identify" questions only
+    const fqSym = document.getElementById('fc-sym-front');
+    if (q.symQ) {
+      // Strip text labels from the SVG so the answer isn't given away
+      const stripped = SYM[q.symQ].replace(/<text[^>]*fill="#5a6a80"[^>]*>.*?<\/text>/gs, '');
+      fqSym.innerHTML = `<div class="symbol-display"><div class="symbol-box">${stripped}</div></div>`;
+    } else {
+      fqSym.innerHTML = '';
+    }
+
+    // Symbol on answer side — full labeled version
+    const faSym = document.getElementById('fc-sym-back');
+    faSym.innerHTML = q.symA ? symBox(q.symA, '') : '';
+
+  } else {
+    document.getElementById('mc-tag').textContent = q.cat;
+    document.getElementById('mc-tag').style.color = col;
+    document.getElementById('mc-q').textContent = q.q;
+    document.getElementById('mc-feedback').classList.remove('show','wrong-fb');
+    document.getElementById('mc-feedback').innerHTML = '';
+    document.getElementById('mc-sym-answer').innerHTML = '';
+    mcAnswered = false;
+
+    // Symbol in question — strip labels so answer isn't shown
+    const mqSym = document.getElementById('mc-sym-q');
+    if (q.symQ) {
+      const stripped = SYM[q.symQ].replace(/<text[^>]*fill="#5a6a80"[^>]*>.*?<\/text>/gs, '');
+      mqSym.innerHTML = `<div class="symbol-display"><div class="symbol-box">${stripped}</div></div>`;
+    } else {
+      mqSym.innerHTML = '';
+    }
+
+    const opts = buildMCOptions(q);
+    const optsEl = document.getElementById('mc-opts');
+    optsEl.innerHTML = '';
+    const letters = ['A','B','C','D'];
+    opts.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'mc-opt';
+      btn.innerHTML = `<span class="opt-letter">${letters[i]}</span>${opt.text}`;
+      btn.onclick = () => answerMC(btn, opt.correct, q);
+      optsEl.appendChild(btn);
+    });
+  }
+}
+
+function buildMCOptions(q) {
+  const pool = ALL_QUESTIONS.filter(x => x !== q && x.a !== q.a);
+  shuffle(pool);
+  const wrongs = pool.slice(0, 3).map(x => ({ text: x.a, correct: false }));
+  const all = [{ text: q.a, correct: true }, ...wrongs];
+  shuffle(all);
+  return all;
+}
+
+function flipCard() {
+  if (isFlipped) return;
+  document.getElementById('flashcard').classList.add('flipped');
+  isFlipped = true;
+  document.getElementById('self-rate').classList.add('show');
+  stats.seen.add(currentIdx);
+  updateStats();
+}
+
+function rateCard(correct) {
+  if (correct) stats.correct++;
+  else stats.missed++;
+  updateStats();
+  nextCard();
+}
+
+function answerMC(btn, correct, q) {
+  if (mcAnswered) return;
+  mcAnswered = true;
+  stats.seen.add(currentIdx);
+  const btns = document.querySelectorAll('.mc-opt');
+  btns.forEach(b => {
+    b.disabled = true;
+    const bText = b.textContent.replace(/^[A-D]/,'').trim();
+    if (b === btn) b.classList.add(correct ? 'correct' : 'wrong');
+    if (bText === q.a && b !== btn) b.classList.add('correct');
+  });
+  if (!correct) {
+    stats.missed++;
+    const fb = document.getElementById('mc-feedback');
+    fb.classList.add('show','wrong-fb');
+    fb.innerHTML = `<strong>Correct:</strong> ${q.a}<br>${q.exp}`;
+  } else {
+    stats.correct++;
+    const fb = document.getElementById('mc-feedback');
+    fb.classList.add('show');
+    fb.textContent = q.exp;
+  }
+  // Show answer symbol in MC
+  if (q.symA) {
+    document.getElementById('mc-sym-answer').innerHTML = symBox(q.symA,'');
+  }
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('stat-seen').textContent = stats.seen.size;
+  document.getElementById('stat-correct').textContent = stats.correct;
+  document.getElementById('stat-missed').textContent = stats.missed;
+  const total = stats.correct + stats.missed;
+  const score = total > 0 ? Math.round(stats.correct/total*100)+'%' : '—';
+  const scoreEl = document.getElementById('stat-score');
+  scoreEl.textContent = score;
+  const pct = total > 0 ? stats.correct/total : 0;
+  scoreEl.className = 'stat-val'+(pct>=.8?' green':pct>=.6?' amber':total>0?' red':'');
+}
+
+function nextCard() {
+  if (currentIdx < sessionDeck.length-1) {
+    currentIdx++;
+    renderCurrent();
+  } else {
+    // End of session — auto-start new one
+    buildSession();
+  }
+}
+
+function prevCard() {
+  if (currentIdx > 0) { currentIdx--; renderCurrent(); }
+}
+
+// Mode tabs
+document.querySelectorAll('.mode-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    mode = tab.dataset.mode;
+    document.getElementById('flash-mode').style.display = mode==='flash' ? 'block' : 'none';
+    document.getElementById('mc-mode').style.display = mode==='mc' ? 'block' : 'none';
+    currentIdx = 0;
+    renderCurrent();
+  });
+});
+
+document.getElementById('new-session-btn').addEventListener('click', buildSession);
+document.getElementById('reset-btn').addEventListener('click', () => {
+  stats = {seen:new Set(),correct:0,missed:0};
+  updateStats();
+});
+document.getElementById('cat-filter').addEventListener('change', () => {
+  stats = {seen:new Set(),correct:0,missed:0};
+  buildSession();
+  updateStats();
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key==='ArrowRight'||e.key==='n') nextCard();
+  if(e.key==='ArrowLeft'||e.key==='p') prevCard();
+  if(e.key===' '&&mode==='flash'){e.preventDefault();flipCard();}
+  if(e.key==='g'&&mode==='flash'&&isFlipped) rateCard(true);
+  if(e.key==='m'&&mode==='flash'&&isFlipped) rateCard(false);
+  if(e.key==='N') buildSession();
+});
+
+buildSession();
+</script>
+</body>
+</html>
